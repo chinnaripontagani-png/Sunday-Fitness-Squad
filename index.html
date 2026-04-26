@@ -13,7 +13,7 @@ body {
     font-family: 'Orbitron', sans-serif;
     color: white;
     text-align: center;
-    height: 100vh;
+    height: 100dvh;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -29,7 +29,6 @@ body::before {
     height: 200%;
     background: radial-gradient(circle, rgba(255,0,80,0.25), transparent 70%);
     animation: moveGlow 10s linear infinite;
-    z-index: 0;
 }
 
 @keyframes moveGlow {
@@ -38,39 +37,42 @@ body::before {
     100% { transform: translate(-25%, -25%); }
 }
 
-/* bg image */
+/* background */
 .bg {
     position: fixed;
     width: 100%;
-    height: 100%;
+    height: 100dvh;
     background-size: cover;
     background-position: center;
-    animation: zoomBg 12s infinite alternate ease-in-out;
+    animation: zoom 12s infinite alternate ease-in-out;
+    transition: background-image 0.6s ease;
     z-index: -1;
 }
 
-@keyframes zoomBg {
+@keyframes zoom {
     from { transform: scale(1); }
     to { transform: scale(1.1); }
 }
 
-/* overlay */
 .overlay {
     position: fixed;
     width: 100%;
     height: 100%;
     background: rgba(0,0,0,0.65);
-    z-index: 1;
 }
 
+/* container */
 .container {
     position: relative;
-    z-index: 2;
-    width: 90%;
+    width: 92%;
     max-width: 420px;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
+/* heading */
 h1 {
+    font-size: 24px;
     color: #ff2e63;
     animation: glow 2s infinite alternate;
 }
@@ -80,8 +82,9 @@ h1 {
     to { text-shadow: 0 0 25px #ff2e63; }
 }
 
+/* workout text */
 .workout {
-    font-size: 22px;
+    font-size: 20px;
     animation: pulse 1.5s infinite;
 }
 
@@ -91,30 +94,26 @@ h1 {
     100% { transform: scale(1); }
 }
 
-input {
-    padding: 14px;
-    width: 90%;
-    border-radius: 10px;
+input, button {
+    width: 100%;
+    padding: 16px;
+    margin-top: 12px;
+    border-radius: 12px;
     border: none;
+    font-size: 16px;
 }
 
 button {
-    width: 100%;
-    padding: 14px;
-    margin-top: 10px;
-    border-radius: 10px;
-    border: none;
     background: linear-gradient(45deg, red, #ff2e63);
     color: white;
-    box-shadow: 0 0 15px red;
 }
 
+/* progress */
 .progressBar {
     width: 100%;
     height: 10px;
     background: #333;
     margin: 10px 0;
-    border-radius: 10px;
 }
 
 .progressFill {
@@ -123,8 +122,8 @@ button {
     background: lime;
 }
 
-.timer { font-size: 28px; color: lime; }
-.countdown { font-size: 50px; color: yellow; }
+.timer { font-size: 26px; color: lime; }
+.countdown { font-size: 48px; color: yellow; }
 
 .hidden { display: none; }
 </style>
@@ -132,7 +131,7 @@ button {
 
 <body>
 
-<!-- 🎵 BACKGROUND MUSIC -->
+<!-- 🎵 MUSIC -->
 <audio id="bgMusic" loop>
     <source src="music/gym.mp3" type="audio/mpeg">
 </audio>
@@ -167,7 +166,7 @@ button {
 </div>
 
 <div id="endScreen" class="hidden container">
-    <h1>🔥 YOU CRUSHED IT!</h1>
+    <h1>🔥 YOU CRUSHED IT! See you next Sunday!</h1>
 </div>
 
 <script>
@@ -201,19 +200,25 @@ let timerDuration = 30;
 let timerInterval;
 
 let music = document.getElementById("bgMusic");
+music.volume = 0.4;
 
+// 🎤 coach voice with music control
 function speak(text){
     speechSynthesis.cancel();
-    speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+    music.pause();
+
+    let utter = new SpeechSynthesisUtterance(text);
+
+    utter.onend = () => {
+        music.play();
+    };
+
+    speechSynthesis.speak(utter);
 }
 
 function setBackground(i){
-    let img = new Image();
-    img.src = backgrounds[i] + "?auto=format&fit=crop&w=800&q=80";
-
-    img.onload = () => {
-        document.getElementById("bg").style.backgroundImage = `url('${img.src}')`;
-    };
+    document.getElementById("bg").style.backgroundImage =
+    `url('${backgrounds[i]}?auto=format&fit=crop&w=800&q=80')`;
 }
 
 function join(){
@@ -224,9 +229,7 @@ function join(){
     nameScreen.classList.add("hidden");
     mainScreen.classList.remove("hidden");
 
-    // 🎵 start music
     music.play();
-
     speak("Welcome " + name);
 }
 
@@ -237,8 +240,8 @@ function startWorkout(){
 }
 
 function countdown(cb){
-    let c = 3;
-    let el = document.getElementById("countdown");
+    let c=3;
+    let el=document.getElementById("countdown");
     el.classList.remove("hidden");
 
     let i=setInterval(()=>{
@@ -266,8 +269,8 @@ function showWorkout(){
         workoutScreen.classList.add("hidden");
         endScreen.classList.remove("hidden");
 
-        music.pause(); // 🎵 stop music
-        speak("Workout complete. Great job!");
+        music.pause();
+        speak("Workout complete. You did great!");
         return;
     }
 
