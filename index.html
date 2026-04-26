@@ -2,6 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+
+<!-- 🔥 MOBILE OPTIMIZATION -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Sunday Fitness Squad</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet">
@@ -22,9 +26,10 @@ body {
     justify-content: center;
     align-items: center;
 
-    transition: background-image 0.8s ease-in-out;
+    transition: background-image 0.8s ease;
 }
 
+/* overlay */
 .overlay {
     position: fixed;
     width: 100%;
@@ -33,70 +38,67 @@ body {
     z-index: 1;
 }
 
+/* container */
 .container {
     position: relative;
     z-index: 2;
     width: 90%;
-    max-width: 500px;
+    max-width: 420px;
 }
 
+/* heading */
 h1 {
+    font-size: 24px;
     color: #ff2e63;
-    text-shadow: 0 0 20px #ff2e63;
 }
 
+/* input */
 input {
-    padding: 12px;
-    width: 80%;
-    border-radius: 8px;
+    padding: 14px;
+    width: 90%;
+    border-radius: 10px;
     border: none;
+    font-size: 16px;
 }
 
+/* buttons */
 button {
-    padding: 14px 30px;
-    margin-top: 20px;
+    width: 100%;
+    padding: 16px;
+    margin-top: 15px;
+    font-size: 16px;
+
     background: linear-gradient(45deg, red, #ff2e63);
     color: white;
     border: none;
-    border-radius: 8px;
-    box-shadow: 0 0 20px red;
-    cursor: pointer;
+    border-radius: 10px;
+    box-shadow: 0 0 15px red;
 }
 
-button:hover {
-    transform: scale(1.1);
-}
-
-.hidden { display: none; }
-
+/* workout text */
 .workout {
-    font-size: 30px;
-    margin-top: 15px;
+    font-size: 22px;
+    margin-top: 10px;
 }
 
+/* countdown */
 .countdown {
-    font-size: 60px;
+    font-size: 55px;
     color: yellow;
-    animation: pulse 1s infinite;
 }
 
+/* timer */
 .timer {
-    font-size: 40px;
+    font-size: 32px;
     color: lime;
-    animation: pulse 1s infinite;
 }
 
-@keyframes pulse {
-    0% {transform: scale(1);}
-    50% {transform: scale(1.2);}
-    100% {transform: scale(1);}
-}
-
+/* progress */
 .progressBar {
     width: 100%;
-    height: 15px;
+    height: 12px;
     background: #333;
-    margin: 20px 0;
+    margin: 15px 0;
     border-radius: 10px;
 }
 
@@ -104,8 +106,10 @@ button:hover {
     height: 100%;
     width: 0%;
     background: lime;
-    transition: width 0.5s;
 }
+
+.hidden { display: none; }
+
 </style>
 </head>
 
@@ -116,7 +120,6 @@ button:hover {
 <div id="nameScreen" class="container">
     <h1>Sunday Fitness Squad 💪</h1>
     <input id="username" placeholder="Enter your name">
-    <br>
     <button onclick="join()">Join</button>
 </div>
 
@@ -131,7 +134,7 @@ button:hover {
     <div id="workoutText" class="workout"></div>
 
     <div class="progressBar">
-        <div class="progressFill" id="progressFill"></div>
+        <div id="progressFill" class="progressFill"></div>
     </div>
 
     <button onclick="completeWorkout()">Completed</button>
@@ -139,26 +142,15 @@ button:hover {
 </div>
 
 <div id="endScreen" class="hidden container">
-    <h1>🔥 YOU CRUSHED IT!</h1>
+    <h1>🔥 You crushed it!</h1>
 </div>
 
 <script>
 let workouts = [
-"Skipping - 100",
-"Jumping Jacks - 100",
-"Squats - 20",
-"Crunches",
-"Russian Twists",
-"Bicycle Crunches",
-"Leg Crunches",
-"Push-ups - 10",
-"Diamond Push-ups - 10",
-"Wide Push-ups - 10",
-"Dips - 10",
-"Pullups - 5",
-"Bicep",
-"Plank - 30 secs",
-"Stretches"
+"Skipping - 100","Jumping Jacks - 100","Squats - 20","Crunches",
+"Russian Twists","Bicycle Crunches","Leg Crunches","Push-ups - 10",
+"Diamond Push-ups - 10","Wide Push-ups - 10","Dips - 10",
+"Pullups - 5","Bicep","Plank - 30 secs","Stretches"
 ];
 
 let backgrounds = [
@@ -180,113 +172,91 @@ let backgrounds = [
 ];
 
 let currentWorkout = 0;
-let timerDuration = 90;
+let timerDuration = 30; // 🔥 CHANGED TO 30 SECONDS
 
-// 🔊 Voice
-function speak(text) {
+function speak(text){
     speechSynthesis.cancel();
-    let msg = new SpeechSynthesisUtterance(text);
-    speechSynthesis.speak(msg);
+    speechSynthesis.speak(new SpeechSynthesisUtterance(text));
 }
 
-// 🔥 Countdown
-function countdownStart(callback) {
-    let count = 3;
-    let el = document.getElementById("countdown");
-    el.classList.remove("hidden");
-
-    speak("Get ready");
-
-    let int = setInterval(() => {
-        if (count > 0) {
-            el.innerText = count;
-            speak(count);
-            count--;
-        } else {
-            el.innerText = "GO!";
-            speak("Go");
-            clearInterval(int);
-
-            setTimeout(() => {
-                el.classList.add("hidden");
-                callback();
-            }, 800);
-        }
-    }, 1000);
+function setBackground(i){
+    document.body.style.backgroundImage = `url('${backgrounds[i]}')`;
 }
 
-// background loader
-function setBackground(index) {
-    let img = new Image();
-    img.src = backgrounds[index];
-    img.onload = () => {
-        document.body.style.backgroundImage = `url('${backgrounds[index]}')`;
-    };
-}
+function join(){
+    let name = username.value;
+    if(!name) return alert("Enter name");
 
-function join() {
-    let name = document.getElementById("username").value;
-    if (!name) return alert("Enter name");
-
-    document.getElementById("displayName").innerText = name;
-
-    document.getElementById("nameScreen").classList.add("hidden");
-    document.getElementById("mainScreen").classList.remove("hidden");
+    displayName.innerText = name;
+    nameScreen.classList.add("hidden");
+    mainScreen.classList.remove("hidden");
 
     speak("Welcome " + name);
 }
 
-function startWorkout() {
-    document.getElementById("mainScreen").classList.add("hidden");
-    document.getElementById("workoutScreen").classList.remove("hidden");
-
-    speak("Starting workout");
-    countdownStart(showWorkout);
+function startWorkout(){
+    mainScreen.classList.add("hidden");
+    workoutScreen.classList.remove("hidden");
+    countdown(showWorkout);
 }
 
-function showWorkout() {
-    if (currentWorkout >= workouts.length) {
-        document.getElementById("workoutScreen").classList.add("hidden");
-        document.getElementById("endScreen").classList.remove("hidden");
-        speak("Workout complete. Great job!");
+function countdown(cb){
+    let c = 3;
+    countdownEl = document.getElementById("countdown");
+    countdownEl.classList.remove("hidden");
+
+    let i = setInterval(()=>{
+        if(c>0){
+            countdownEl.innerText=c;
+            speak(c);
+            c--;
+        }else{
+            countdownEl.innerText="GO!";
+            speak("Go");
+            clearInterval(i);
+            setTimeout(()=>{
+                countdownEl.classList.add("hidden");
+                cb();
+            },800);
+        }
+    },1000);
+}
+
+function showWorkout(){
+    if(currentWorkout>=workouts.length){
+        workoutScreen.classList.add("hidden");
+        endScreen.classList.remove("hidden");
+        speak("Workout complete");
         return;
     }
 
-    let text = workouts[currentWorkout];
-
-    document.getElementById("workoutTitle").innerText =
-        "Workout " + (currentWorkout + 1);
-
-    document.getElementById("workoutText").innerText = text;
+    workoutTitle.innerText="Workout "+(currentWorkout+1);
+    workoutText.innerText=workouts[currentWorkout];
 
     setBackground(currentWorkout);
 
-    let percent = (currentWorkout / workouts.length) * 100;
-    document.getElementById("progressFill").style.width = percent + "%";
+    progressFill.style.width=(currentWorkout/workouts.length)*100+"%";
 
-    speak("Next workout " + text);
+    speak("Next workout " + workouts[currentWorkout]);
 }
 
-function completeWorkout() {
+function completeWorkout(){
     speak("Rest time");
 
-    let timerEl = document.getElementById("timer");
-    timerEl.classList.remove("hidden");
+    timer.classList.remove("hidden");
+    let t=timerDuration;
 
-    let t = timerDuration;
-
-    let interval = setInterval(() => {
+    let i=setInterval(()=>{
         t--;
-        timerEl.innerText = "Rest: " + t;
+        timer.innerText="Rest: "+t;
 
-        if (t <= 0) {
-            clearInterval(interval);
-            timerEl.classList.add("hidden");
-
+        if(t<=0){
+            clearInterval(i);
+            timer.classList.add("hidden");
             currentWorkout++;
-            countdownStart(showWorkout);
+            countdown(showWorkout);
         }
-    }, 1000);
+    },1000);
 }
 </script>
 
