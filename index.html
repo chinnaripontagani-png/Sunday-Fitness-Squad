@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Sunday Fitness Squad</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet">
@@ -14,24 +13,53 @@ body {
     font-family: 'Orbitron', sans-serif;
     color: white;
     text-align: center;
-
-    background: black;
-    background-size: cover;
-    background-position: center;
-
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-
-    transition: background-image 0.7s ease-in-out;
+    overflow: hidden;
+    background: black;
 }
 
+/* animated glow */
+body::before {
+    content: "";
+    position: fixed;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,0,80,0.25), transparent 70%);
+    animation: moveGlow 10s linear infinite;
+    z-index: 0;
+}
+
+@keyframes moveGlow {
+    0% { transform: translate(-25%, -25%); }
+    50% { transform: translate(25%, 25%); }
+    100% { transform: translate(-25%, -25%); }
+}
+
+/* bg image */
+.bg {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    animation: zoomBg 12s infinite alternate ease-in-out;
+    z-index: -1;
+}
+
+@keyframes zoomBg {
+    from { transform: scale(1); }
+    to { transform: scale(1.1); }
+}
+
+/* overlay */
 .overlay {
     position: fixed;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.75);
+    background: rgba(0,0,0,0.65);
     z-index: 1;
 }
 
@@ -40,18 +68,27 @@ body {
     z-index: 2;
     width: 90%;
     max-width: 420px;
-    animation: fadeIn 0.6s ease;
-}
-
-@keyframes fadeIn {
-    from {opacity: 0; transform: translateY(20px);}
-    to {opacity: 1; transform: translateY(0);}
 }
 
 h1 {
-    font-size: 24px;
     color: #ff2e63;
-    text-shadow: 0 0 15px #ff2e63;
+    animation: glow 2s infinite alternate;
+}
+
+@keyframes glow {
+    from { text-shadow: 0 0 10px red; }
+    to { text-shadow: 0 0 25px #ff2e63; }
+}
+
+.workout {
+    font-size: 22px;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
 }
 
 input {
@@ -63,51 +100,20 @@ input {
 
 button {
     width: 100%;
-    padding: 16px;
-    margin-top: 12px;
-    font-size: 16px;
+    padding: 14px;
+    margin-top: 10px;
     border-radius: 10px;
     border: none;
-    cursor: pointer;
-
     background: linear-gradient(45deg, red, #ff2e63);
     color: white;
     box-shadow: 0 0 15px red;
-    transition: 0.2s;
-}
-
-button:active {
-    transform: scale(0.95);
-}
-
-.workout {
-    font-size: 22px;
-    margin-top: 10px;
-}
-
-.countdown {
-    font-size: 60px;
-    color: yellow;
-    animation: pulse 1s infinite;
-}
-
-.timer {
-    font-size: 32px;
-    color: lime;
-    animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-    0% {transform: scale(1);}
-    50% {transform: scale(1.2);}
-    100% {transform: scale(1);}
 }
 
 .progressBar {
     width: 100%;
-    height: 12px;
+    height: 10px;
     background: #333;
-    margin: 15px 0;
+    margin: 10px 0;
     border-radius: 10px;
 }
 
@@ -115,8 +121,10 @@ button:active {
     height: 100%;
     width: 0%;
     background: lime;
-    transition: width 0.5s;
 }
+
+.timer { font-size: 28px; color: lime; }
+.countdown { font-size: 50px; color: yellow; }
 
 .hidden { display: none; }
 </style>
@@ -124,6 +132,12 @@ button:active {
 
 <body>
 
+<!-- 🎵 BACKGROUND MUSIC -->
+<audio id="bgMusic" loop>
+    <source src="music/gym.mp3" type="audio/mpeg">
+</audio>
+
+<div id="bg" class="bg"></div>
 <div class="overlay"></div>
 
 <div id="nameScreen" class="container">
@@ -146,8 +160,8 @@ button:active {
         <div id="progressFill" class="progressFill"></div>
     </div>
 
-    <button onclick="completeWorkout()">Completed</button>
-    <button onclick="skipRest()">⏭ Skip Rest</button>
+    <button id="completeBtn" onclick="completeWorkout()">Completed</button>
+    <button id="skipBtn" class="hidden" onclick="skipRest()">⏭ Skip Rest</button>
 
     <div id="timer" class="timer hidden"></div>
 </div>
@@ -164,34 +178,29 @@ let workouts = [
 "Pullups - 5","Bicep","Plank - 30 secs","Stretches"
 ];
 
-// 🔥 stable backgrounds
 let backgrounds = [
-"https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg",
-"https://images.pexels.com/photos/1552252/pexels-photo-1552252.jpeg",
-"https://images.pexels.com/photos/841130/pexels-photo-841130.jpeg",
-"https://images.pexels.com/photos/416717/pexels-photo-416717.jpeg",
-"https://images.pexels.com/photos/2261477/pexels-photo-2261477.jpeg",
-"https://images.pexels.com/photos/2294361/pexels-photo-2294361.jpeg",
-"https://images.pexels.com/photos/3838389/pexels-photo-3838389.jpeg",
-"https://images.pexels.com/photos/841130/pexels-photo-841130.jpeg",
-"https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg",
-"https://images.pexels.com/photos/1552252/pexels-photo-1552252.jpeg",
-"https://images.pexels.com/photos/2261477/pexels-photo-2261477.jpeg",
-"https://images.pexels.com/photos/3838389/pexels-photo-3838389.jpeg",
-"https://images.pexels.com/photos/841130/pexels-photo-841130.jpeg",
-"https://images.pexels.com/photos/416717/pexels-photo-416717.jpeg",
-"https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg"
+"https://images.unsplash.com/photo-1599058917212-d750089bc07e",
+"https://images.unsplash.com/photo-1594737625785-c1c8d1c8d88b",
+"https://images.unsplash.com/photo-1598970434795-0c54fe7c0648",
+"https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b",
+"https://images.unsplash.com/photo-1605296867304-46d5465a13f1",
+"https://images.unsplash.com/photo-1583454110551-21f2fa2afe61",
+"https://images.unsplash.com/photo-1583454110551-21f2fa2afe61",
+"https://images.unsplash.com/photo-1598970434795-0c54fe7c0648",
+"https://images.unsplash.com/photo-1598970434795-0c54fe7c0648",
+"https://images.unsplash.com/photo-1598970434795-0c54fe7c0648",
+"https://images.unsplash.com/photo-1579758629938-03607ccdbaba",
+"https://images.unsplash.com/photo-1576678927484-cc907957088c",
+"https://images.unsplash.com/photo-1517836357463-d25dfeac3438",
+"https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b",
+"https://images.unsplash.com/photo-1558611848-73f7eb4001ab"
 ];
-
-// 🔥 PRELOAD images
-backgrounds.forEach(src => {
-    let img = new Image();
-    img.src = src;
-});
 
 let currentWorkout = 0;
 let timerDuration = 30;
 let timerInterval;
+
+let music = document.getElementById("bgMusic");
 
 function speak(text){
     speechSynthesis.cancel();
@@ -199,7 +208,12 @@ function speak(text){
 }
 
 function setBackground(i){
-    document.body.style.backgroundImage = `url('${backgrounds[i]}')`;
+    let img = new Image();
+    img.src = backgrounds[i] + "?auto=format&fit=crop&w=800&q=80";
+
+    img.onload = () => {
+        document.getElementById("bg").style.backgroundImage = `url('${img.src}')`;
+    };
 }
 
 function join(){
@@ -209,6 +223,9 @@ function join(){
     displayName.innerText = name;
     nameScreen.classList.add("hidden");
     mainScreen.classList.remove("hidden");
+
+    // 🎵 start music
+    music.play();
 
     speak("Welcome " + name);
 }
@@ -221,15 +238,15 @@ function startWorkout(){
 
 function countdown(cb){
     let c = 3;
-    let el = countdownEl = document.getElementById("countdown");
+    let el = document.getElementById("countdown");
     el.classList.remove("hidden");
 
-    let i = setInterval(()=>{
+    let i=setInterval(()=>{
         if(c>0){
             el.innerText=c;
             speak(c);
             c--;
-        }else{
+        } else {
             el.innerText="GO!";
             speak("Go");
             clearInterval(i);
@@ -242,10 +259,15 @@ function countdown(cb){
 }
 
 function showWorkout(){
+    document.getElementById("skipBtn").classList.add("hidden");
+    document.getElementById("completeBtn").classList.remove("hidden");
+
     if(currentWorkout>=workouts.length){
         workoutScreen.classList.add("hidden");
         endScreen.classList.remove("hidden");
-        speak("Workout complete");
+
+        music.pause(); // 🎵 stop music
+        speak("Workout complete. Great job!");
         return;
     }
 
@@ -262,6 +284,9 @@ function showWorkout(){
 function completeWorkout(){
     speak("Rest time");
 
+    document.getElementById("completeBtn").classList.add("hidden");
+    document.getElementById("skipBtn").classList.remove("hidden");
+
     timer.classList.remove("hidden");
     let t=timerDuration;
     timer.innerText="Rest: "+t;
@@ -276,7 +301,6 @@ function completeWorkout(){
     },1000);
 }
 
-// 🔥 skip rest feature
 function skipRest(){
     nextWorkout();
 }
@@ -284,6 +308,7 @@ function skipRest(){
 function nextWorkout(){
     clearInterval(timerInterval);
     timer.classList.add("hidden");
+    document.getElementById("skipBtn").classList.add("hidden");
 
     currentWorkout++;
     countdown(showWorkout);
